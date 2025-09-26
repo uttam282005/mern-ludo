@@ -5,6 +5,8 @@ import useSocketData from '../../hooks/useSocketData';
 import Map from './Map/Map';
 import Navbar from '../Navbar/Navbar';
 import Overlay from '../Overlay/Overlay';
+import Scoreboard from '../Scoreboard/Scoreboard';
+import { getPlayerMap } from '../Scoreboard/playerMapUtil';
 import styles from './Gameboard.module.css';
 import trophyImage from '../../images/trophy.webp';
 
@@ -23,6 +25,7 @@ const Gameboard = () => {
     const [movingPlayer, setMovingPlayer] = useState('red');
 
     const [winner, setWinner] = useState(null);
+    const [scores, setScores] = useState({});
 
     useEffect(() => {
         socket.emit('room:data', context.roomId);
@@ -52,6 +55,7 @@ const Gameboard = () => {
             setStarted(data.started);
         });
 
+        socket.on('game:scores', setScores);
         socket.on('game:winner', winner => {
             setWinner(winner);
         });
@@ -59,23 +63,40 @@ const Gameboard = () => {
             window.location.reload();
         });
 
+        return () => {
+            socket.off('game:scores', setScores);
+        };
     }, [socket, context.playerId, context.roomId, setRolledNumber]);
+
+    // Map playerId to color for Scoreboard
+    const playerMap = getPlayerMap(players);
+    // Find winner's score for Game Over
+    let winnerScore = null;
+    if (winner && playerMap) {
+        const winnerPlayer = Object.entries(playerMap).find(([, v]) => v.color === winner);
+        if (winnerPlayer && scores[winnerPlayer[0]]) {
+            winnerScore = scores[winnerPlayer[0]];
+        }
+    }
 
     return (
         <>
             {pawns.length === 16 ? (
                 <div className='container'>
-                    <Navbar
-                        players={players}
-                        started={started}
-                        time={time}
-                        isReady={isReady}
-                        movingPlayer={movingPlayer}
-                        rolledNumber={rolledNumber}
-                        nowMoving={nowMoving}
-                        ended={winner !== null}
-                    />
-                    <Map pawns={pawns} nowMoving={nowMoving} rolledNumber={rolledNumber} />
+                    <Scoreboard socket={socket} playerMap={playerMap} />
+                    <div style={{ gridColumn: 2, gridRow: '1 / span 2', width: '100%' }}>
+                        <Navbar
+                            players={players}
+                            started={started}
+                            time={time}
+                            isReady={isReady}
+                            movingPlayer={movingPlayer}
+                            rolledNumber={rolledNumber}
+                            nowMoving={nowMoving}
+                            ended={winner !== null}
+                        />
+                        <Map pawns={pawns} nowMoving={nowMoving} rolledNumber={rolledNumber} />
+                    </div>
                 </div>
             ) : (
                 <ReactLoading type='spinningBubbles' color='white' height={667} width={375} />
@@ -87,6 +108,9 @@ const Gameboard = () => {
                         <h1>
                             1st: <span style={{ color: winner }}>{winner}</span>
                         </h1>
+                        {winnerScore !== null && (
+                            <h2 style={{ color: winner }}>Score: {winnerScore}</h2>
+                        )}
                         <button onClick={() => socket.emit('player:exit')}>Play again</button>
                     </div>
                 </Overlay>

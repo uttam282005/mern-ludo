@@ -1,0 +1,47 @@
+.scoreboardPanel {
+  background: #222;
+  color: #fff;
+  border-radius: 10px;
+  padding: 1rem 2rem;
+  width: 240px;
+  margin: 2rem 0 0 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  align-self: flex-start;
+  position: relative;
+  z-index: 1000;
+}
+
+.scoresList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scoreRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  padding: 0.3rem 0;
+}
+
+.red {
+  color: #ff4d4d;
+}
+
+.blue {
+  color: #4d79ff;
+}
+
+.green {
+  color: #4dff88;
+}
+
+.yellow {
+  color: #ffe066;
+}
+
+.points {
+  font-weight: bold;
+}

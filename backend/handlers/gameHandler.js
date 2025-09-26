@@ -1,6 +1,7 @@
 const { getRoom, updateRoom } = require('../services/roomService');
-const { sendToPlayersRolledNumber, sendWinner } = require('../socket/emits');
+const { sendToPlayersRolledNumber, sendWinner, sendToPlayersData, sendScoresToPlayers } = require('../socket/emits');
 const { rollDice, isMoveValid } = require('./handlersFunctions');
+const { addPawnProgressScore, handleCapture, calculatePlayerScore } = require('../utils/scoring');
 
 module.exports = socket => {
     const req = socket.request;
@@ -10,9 +11,28 @@ module.exports = socket => {
         if (room.winner) return;
         const pawn = room.getPawn(pawnId);
         if (isMoveValid(req.session, pawn, room)) {
-            const newPositionOfMovedPawn = pawn.getPositionAfterMove(room.rolledNumber);
+            const stepsMoved = room.rolledNumber;
+            const oldPosition = pawn.position;
+            const newPositionOfMovedPawn = pawn.getPositionAfterMove(stepsMoved);
+            // Add progress score
+            addPawnProgressScore(pawn, stepsMoved);
             room.changePositionOfPawn(pawn, newPositionOfMovedPawn);
-            room.beatPawns(newPositionOfMovedPawn, req.session.color);
+
+            // Handle captures and scoring
+            const pawnsOnPosition = room.pawns.filter(p => p.position === newPositionOfMovedPawn && p.color !== pawn.color);
+            let captures = 0;
+            pawnsOnPosition.forEach(victimPawn => {
+                handleCapture(pawn, victimPawn);
+                captures++;
+            });
+
+            // Update playerScores in room state
+            room.playerScores = {};
+            room.players.forEach(player => {
+                const playerPawns = room.getPlayerPawns(player.color);
+                room.playerScores[player._id] = calculatePlayerScore(playerPawns);
+            });
+
             room.changeMovingPlayer();
             const winner = room.getWinner();
             if (winner) {
@@ -20,6 +40,9 @@ module.exports = socket => {
                 sendWinner(room._id.toString(), winner);
             }
             await updateRoom(room);
+            // Emit updated scores and state
+            sendToPlayersData(room);
+            sendScoresToPlayers(room._id.toString(), room.playerScores);
         }
     };
 

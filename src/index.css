@@ -56,10 +56,13 @@ canvas {
 
 .container {
     display: grid;
-    align-items: center;
-    justify-items: center;
-    grid-template-columns: 230px 230px;
-    grid-template-rows: 50px 250px 250px 50px;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: auto 1fr;
+    height: 90vh;
+    width: 90vw;
+    align-items: start;
+    justify-items: stretch;
+    gap: 0;
 }
 
 .canvas-container {

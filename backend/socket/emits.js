@@ -1,3 +1,7 @@
+// Emit live scores to all players in a room
+const sendScoresToPlayers = (roomId, playerScores) => {
+    socketManager.getIO().to(roomId).emit('game:scores', playerScores);
+};
 const socketManager = require('./socketManager');
 
 const sendToPlayersRolledNumber = (id, rolledNumber) => {
@@ -26,4 +30,5 @@ module.exports = {
     sendToOnePlayerData,
     sendToOnePlayerRooms,
     sendWinner,
+    sendScoresToPlayers,
 };
