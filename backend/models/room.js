@@ -4,6 +4,7 @@ const { makeRandomMove } = require('../handlers/handlersFunctions');
 const timeoutManager = require('./timeoutManager.js');
 const PawnSchema = require('./pawn');
 const PlayerSchema = require('./player');
+const { calculatePlayerScore } = require('../utils/scoring');
 
 const RoomSchema = new mongoose.Schema({
     name: String,
@@ -35,12 +36,14 @@ const RoomSchema = new mongoose.Schema({
     },
 });
 
-RoomSchema.methods.beatPawns = function (position, attackingPawnColor) {
+RoomSchema.methods.beatPawns = function (position, attackingPawn) {
     const pawnsOnPosition = this.pawns.filter(pawn => pawn.position === position);
     pawnsOnPosition.forEach(pawn => {
-        if (pawn.color !== attackingPawnColor) {
+        if (pawn.color !== attackingPawn.color) {
             const index = this.getPawnIndex(pawn._id);
             this.pawns[index].position = this.pawns[index].basePos;
+            attackingPawn.score += this.pawns[index].score || 0;
+            this.pawns[index].score = 0;
         }
     });
 };
@@ -63,7 +66,7 @@ RoomSchema.methods.changeMovingPlayer = function () {
 RoomSchema.methods.movePawn = function (pawn) {
     const newPositionOfMovedPawn = pawn.getPositionAfterMove(this.rolledNumber);
     this.changePositionOfPawn(pawn, newPositionOfMovedPawn);
-    this.beatPawns(newPositionOfMovedPawn, pawn.color);
+    this.beatPawns(newPositionOfMovedPawn, pawn);
 };
 
 RoomSchema.methods.getPawnsThatCanMove = function () {
@@ -150,6 +153,14 @@ RoomSchema.methods.getPlayerPawns = function (color) {
 RoomSchema.methods.getCurrentlyMovingPlayer = function () {
     return this.players.find(player => player.nowMoving === true);
 };
+
+RoomSchema.methods.handlePlayerScores = function () {
+    this.playerScores = {};
+    this.players.forEach(player => {
+        const playerPawns = this.getPlayerPawns(player.color);
+        this.playerScores[player._id] = calculatePlayerScore(playerPawns);
+    });
+}
 
 const Room = mongoose.model('Room', RoomSchema);
 

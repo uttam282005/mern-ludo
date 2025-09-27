@@ -1,7 +1,6 @@
 const { getRoom, updateRoom } = require('../services/roomService');
 const { sendToPlayersRolledNumber, sendWinner, sendToPlayersData, sendScoresToPlayers } = require('../socket/emits');
 const { rollDice, isMoveValid } = require('./handlersFunctions');
-const { addPawnProgressScore, handleCapture, calculatePlayerScore } = require('../utils/scoring');
 
 module.exports = socket => {
     const req = socket.request;
@@ -11,26 +10,11 @@ module.exports = socket => {
         if (room.winner) return;
         const pawn = room.getPawn(pawnId);
         if (isMoveValid(req.session, pawn, room)) {
-            const stepsMoved = room.rolledNumber;
-            const newPositionOfMovedPawn = pawn.getPositionAfterMove(stepsMoved);
-            // Add progress score
-            addPawnProgressScore(pawn, stepsMoved);
-            room.changePositionOfPawn(pawn, newPositionOfMovedPawn);
+            pawn.addPawnProgressScore(stepsMoved);
 
-            // Handle captures and scoring
-            const pawnsOnPosition = room.pawns.filter(p => p.position === newPositionOfMovedPawn && p.color !== pawn.color);
-            let captures = 0;
-            pawnsOnPosition.forEach(victimPawn => {
-                handleCapture(pawn, victimPawn);
-                captures++;
-            });
+            room.movePawn(pawn);
 
-            // Update playerScores in room state
-            room.playerScores = {};
-            room.players.forEach(player => {
-                const playerPawns = room.getPlayerPawns(player.color);
-                room.playerScores[player._id] = calculatePlayerScore(playerPawns);
-            });
+            room.handlePlayerScores();
 
             room.changeMovingPlayer();
             const winner = room.getWinner();
