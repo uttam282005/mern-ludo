@@ -10,7 +10,7 @@ module.exports = socket => {
         if (room.winner) return;
         const pawn = room.getPawn(pawnId);
         if (isMoveValid(req.session, pawn, room)) {
-            pawn.addPawnProgressScore(stepsMoved);
+            pawn.addPawnProgressScore(room.rolledNumber);
 
             room.movePawn(pawn);
 
@@ -26,6 +26,7 @@ module.exports = socket => {
             // Emit updated scores and state
             sendToPlayersData(room);
             sendScoresToPlayers(room._id.toString(), room.playerScores);
+            console.log(room.playerScores);
         }
     };
 
