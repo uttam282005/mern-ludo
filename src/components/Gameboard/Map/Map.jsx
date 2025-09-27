@@ -49,7 +49,9 @@ const Map = ({ pawns, nowMoving, rolledNumber }) => {
             y = event.clientY - rect.top;
         canvas.style.cursor = 'default';
         for (const pawn of pawns) {
+      console.log(pawn.touchableArea)
             if (
+                pawn.touchableArea &&
                 ctx.isPointInPath(pawn.touchableArea, x, y) &&
                 player.color === pawn.color &&
                 canPawnMove(pawn, rolledNumber)
