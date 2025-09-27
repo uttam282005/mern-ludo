@@ -12,7 +12,6 @@ module.exports = socket => {
         const pawn = room.getPawn(pawnId);
         if (isMoveValid(req.session, pawn, room)) {
             const stepsMoved = room.rolledNumber;
-            const oldPosition = pawn.position;
             const newPositionOfMovedPawn = pawn.getPositionAfterMove(stepsMoved);
             // Add progress score
             addPawnProgressScore(pawn, stepsMoved);
