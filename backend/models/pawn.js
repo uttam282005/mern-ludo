@@ -84,6 +84,7 @@ PawnSchema.methods.getPositionAfterMove = function (rolledNumber) {
 };
 
 PawnSchema.methods.addPawnProgressScore = function (stepsMoved) {
+    console.log(this.position, this.basePos, stepsMoved);   
     if (this.position === this.basePos) return;
     this.score = (this.score || 0) + stepsMoved;
 }

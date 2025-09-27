@@ -10,7 +10,7 @@
   grid-column: 1;
   align-self: flex-start;
   position: relative;
-  z-index: 1000;
+  z-index: 1;
 }
 
 .scoresList {
@@ -32,10 +32,6 @@
 
 .blue {
   color: #4d79ff;
-}
-
-.green {
-  color: #4dff88;
 }
 
 .yellow {

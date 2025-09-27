@@ -26,7 +26,6 @@ module.exports = socket => {
             // Emit updated scores and state
             sendToPlayersData(room);
             sendScoresToPlayers(room._id.toString(), room.playerScores);
-            console.log(room.playerScores);
         }
     };
 
